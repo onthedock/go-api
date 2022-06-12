@@ -247,4 +247,3 @@ $ curl --silent -X GET http://go.dev.vm:8080/api/v1/person | jq
 ```
 
 En este caso el código de estatus devuelto es `200`; no se ha producido ningún error, por lo que el *slice* `people`, que se ha inicializado con 0 elementos antes de `rows.Next()`, está vacío.
-
