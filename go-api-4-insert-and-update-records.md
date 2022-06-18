@@ -104,4 +104,79 @@ $ curl --silent -X GET http://go.dev.vm:8080/api/v1/person/1001 | jq
 
 ## Actualizar un registro (`UpdatePerson`)
 
-... # To be Done
+Para actualizar un registro, indicaremos qué registro pasando el `id`: `/api/v1/person/{id}` y usando el método HTTP `PUT`.
+
+En `models/person.go`:
+
+```go
+// models/person.go
+func UpdatePerson(ourPerson Person, id int) (bool, error) {
+    tx, err := DB.Begin()
+    if err != nil {
+        fmt.Printf("Error connecting to db, %s", err.Error())
+        return false, err
+    }
+    stmt, err := tx.Prepare("UPDATE people SET first_name = ?, last_name = ?, email = ?, ip_address = ? WHERE Id = ?")
+    if err != nil {
+        fmt.Printf("Error preparing update: %s", err.Error())
+        return false, err
+    }
+    defer stmt.Close()
+    _, err = stmt.Exec(ourPerson.FirstName, ourPerson.LastName, ourPerson.Email, ourPerson.IpAddress, id)
+    if err != nil {
+        fmt.Printf("Error executing the query: %s", err.Error())
+        return false, err
+    }
+    tx.Commit()
+    return true, nil
+}
+```
+
+Creamos la función para actualizar un registro en la base de datos.
+
+Lo primero que me llama la atención es que se use `id int`, cuando en `GetPersonById(id string)` se usa un `string`. El autor no hace ningún comentario al respecto en el tutorial original, por lo que entiendo que se ha usado el razonamiento *por defecto* de que el `id` es un número, en contra de lo indicado anteriormente, de usar un `string` para evitar conversiones...
+
+Por lo demás, se inicia una transacción con `DB.Begin()`, se prepara el *statement* para realizar el `UPDATE` en la base de datos y se ejecuta con `stmt.Exec(...)`, proporcinando los valores a insertar obtenidos desde el *struct* de tipo `Person` pasado en la función.
+
+> En el original, faltan las comas entre los diferentes campos del comando `UPDATE`.
+>
+> Además, en `stmt.Exec()` se pasa `ourPerson.Id`, cuando en realidad se debe pasar `id`. Tal y como está el código en el tutorial, ourPerson.Id está **vacío**. Al realizar el `UPDATE` con `ourPerson.Id` se muestra el mensaje de éxito, pero si obtenemos de nuevo el registro con `GET`, veremos que **no se ha actualizado**.
+
+Finalmente, si no se ha producido ningún error al ejecutar la consulta en la base de datos, se *compromete* (`tx.Commit()`) la transacción y se devuelve `true, nil`.
+
+## Llamar a `updatePerson`
+
+El método `updatePerson` es prácticamente igual a `addPerson`, solo que ahora tomamos el `id` de la URI:
+
+```go
+// main.go
+func updatePerson(c *gin.Context) {
+    var json models.Person
+    if err := c.ShouldBindJSON(&json); err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return
+    }
+    personId, err := strconv.Atoi(c.Param("id"))
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+        return
+    }
+    success, err:= models.UpdatePerson(json, personId)
+    if success {
+        c.JSON(http.StatusOK, gin.H{"message": "success"})
+    } else {
+        c.JSON(http.StatusBadRequest, gin.H{"error": err})
+    }
+}
+```
+
+Obtenemos el objeto JSON enviado por el cliente como parte de la petición y lo *encajamos* en la variable `json` (que es una *struct* de tipo `Person`).
+
+Si no hay ningún error, obtenemos también el `id` desde la petición y lo convertimos a `int`, ya que en `UpdatePerson` esperamos un `int`. Si se produce un error, el servidor no seguirá procesando la petición, por lo que, en mi opinión, es necesario incluir un `return` tras devolver el mensaje de error inválido.
+
+Finalmente, si todo ha ido bien devolvemos el mensaje `success` o el error que se ha producido, en caso contrario.
+
+```shell
+ curl --silent -X PUT http://go.dev.vm:8080/api/v1/person/1001 -d @user.json
+{"message":"success"}%
+```
