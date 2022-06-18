@@ -78,3 +78,32 @@ Validamos que se ha eliminado:
 $ curl --silent -X GET http://go.dev.vm:8080/api/v1/person/1000   
 {"error":"No record found"}
 ```
+
+## `OPTIONS`
+
+El tutorial acaba implementando el [método `OPTIONS` de HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/OPTIONS). El objetivo de este método es que el cliente pueda obtener información de los métodos soportados por la API.
+
+En `main.go`:
+
+```go
+func options(c *gin.Context) {
+    ourOptions := "HTTP/1.1 200 OK\n" +
+        "Allow: GET,POST,PUT,DELETE,OPTIONS\n" +
+        "Access-Control-Allow-Origin: http://go.dev.vm:8080\n" +
+        "Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS\n" +
+        "Access-Control-Allow-Headers: Content-Type\n"
+
+    c.String(http.StatusNoContent, ourOptions)
+}
+```
+
+En el tutorial el autor devuelve un código de estado numérico (200), cuando para el resto de las peticiones ha usado las constantes definidas en el paquete `net/http`. En la documentación de la MDN (Mozilla Developer Network), el código devuelto es `204 - No content`. Sin embargo, si devuelvo `http.StatusNoContent`, no se muestra nada al hacer la petición a la API con el método `OPTIONS`, por lo que he dejado `http.StatusOK`:
+
+```shell
+$ curl -X OPTIONS  http://go.dev.vm:8080/api/v1/person
+HTTP/1.1 200 OK
+Allow: GET,POST,PUT,DELETE,OPTIONS
+Access-Control-Allow-Origin: http://go.dev.vm:8080
+Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS
+Access-Control-Allow-Headers: Content-Type
+```
