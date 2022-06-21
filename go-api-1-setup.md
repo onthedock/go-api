@@ -170,16 +170,16 @@ Desde otro terminal, usamos `curl` para lanzar peticiones a la aplicación. Por 
 > En mi caso, la aplicación está "publicada" en `http://go.dev.vm`
 
 ```shell
-$ curl http://go.dev.vm:8080/api/v1/                  
+$ curl http://go.dev.vm:8080/api/v1/
 404 page not found
 ```
 
-No hemos definido ninguna ruta para `/`, por lo que obteneoms un mensaje de error (no se encuentra la página).
+No hemos definido ninguna ruta para `/`, por lo que obtenemos un mensaje de error (no se encuentra la página).
 
 Por defecto, `curl` realiza peticiones `GET`, pero podemos indicar el *verbo* a usar mediante `-X`:
 
 ```shell
-$ url -X GET http://go.dev.vm:8080/api/v1/
+$ curl -X GET http://go.dev.vm:8080/api/v1/
 404 page not found
 ```
 
