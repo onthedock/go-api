@@ -67,7 +67,7 @@ v1 := r.Group("/api/v1")
 r.Run()
 ```
 
-Toddas las peticiones que llegan al servidor `www.example.org/api/v1` se gestionan por este grupo de *routes*.
+Todas las peticiones que llegan al servidor `www.example.org/api/v1` se gestionan por este grupo de *routes*.
 
 Gestionamos cada petición en función del **verbo** HTTP, la ruta a la que va dirigida y en función de ello, identificamos la función a llamar. Por ejemplo:
 
@@ -86,7 +86,7 @@ v1.GET("person/:id", getPersonById)
 ```
 
 - Verbo: `GET`
-- Ruta: `person/:id` (en realidad, `/api/v1/person`). En este caso, `:id` permite capturar esta parte de la ruta y almacenarla en la variable `id`.
+- Ruta: `person/:id` (en realidad, `/api/v1/person/123`). En este caso, `:id` permite capturar esta parte de la ruta y almacenarla en la variable `id`.
 - Función a llamar: `getPersons`
 
 ## *Handlers*
