@@ -186,7 +186,7 @@ Si `persons` no es `nil`, devolvemos el objeto JSON con los resultados obtenidos
 
 ### Realizar la conexión con la base de datos
 
-Hasta ahora hemos estado enfocados en actaulizar la llamada `getPersons(..)` para llamar a `models.GetPersons(10)` y procesar el resultado obtenido desde la base de datos y devolverlo en la web.
+Hasta ahora hemos estado enfocados en actualizar la llamada `getPersons(..)` para llamar a `models.GetPersons(10)` y procesar el resultado obtenido desde la base de datos y devolverlo en la web.
 
 Antes de poder probar la aplicación, tenemos que añadir la conexión con la base de datos; al principio de la función `main.go`, añadimos:
 
