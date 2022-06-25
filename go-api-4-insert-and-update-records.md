@@ -8,9 +8,9 @@ Lanzaremos una petición `POST` que contiene un objeto JSON y lo procesaremos pa
 
 En el fichero `models/person.go`, añadimos la función `AddPerson`; a la que pasamos una `Person` y que devuelve `bool` (en función de si se ha añadido o no la persona a la base de datos) y un error.
 
-Empezamos inicializando una transacción, con [`DB.Begin()`](https://pkg.go.dev/database/sql?utm_source=gopls#DB.Begin). A continuación, tras controlar un posible error, preparamos el comando para insertar el registro en la base de datos (excluimos `id` porque es autogenerado por la base de datos).
+Empezamos inicializando una transacción, con [`DB.Begin()`](https://pkg.go.dev/database/sql#DB.Begin). A continuación, tras controlar un posible error, preparamos el comando para insertar el registro en la base de datos (excluimos `id` porque es autogenerado por la base de datos).
 
-Lo insertamos mediante `stmt.Exec()` y finalizamos la transacción con [`tx.Commit()`](https://pkg.go.dev/database/sql?utm_source=gopls#Tx.Commit).
+Lo insertamos mediante `stmt.Exec()` y finalizamos la transacción con [`tx.Commit()`](https://pkg.go.dev/database/sql#Tx.Commit).
 
 Si todo ha ido bien, devolvemos `true` (y ningún error, `nil`):
 
@@ -44,7 +44,7 @@ func AddPerson(newPerson Person) (bool, error) {
 
 Una vez creado el método para insertar los valores en la base de datos, volvemos a `main.go`. El objetivo es crear la función que recoja el objeto JSON enviado en la petición, convertirlo en una *struct* `Person` y pasarlo a la función que acabamos de crear para que lo inserte en la bbdd.
 
-Creamos la variable `json` de tipo `models.Person`. Mediante `c.ShouldBindJSON(&json)`, que intenta asignar el contenido de la petición a la *struct* `json` (de tipo `Person`). Si hay un error, se devuelve para que se gestione en la aplicación (a diferencia de los métodos `Must...`, que fallan directamente con un 400 [Model binding and validation](https://pkg.go.dev/github.com/gin-gonic/gin@v1.8.1#readme-model-binding-and-validation)).
+Creamos la variable `json` de tipo `models.Person`. Mediante `c.ShouldBindJSON(&json)` intentamos asignar el contenido de la petición a la *struct* `json` (de tipo `Person`). Si hay un error, se devuelve para que se gestione en la aplicación (a diferencia de los métodos `Must...`, que fallan directamente con un 400 [Model binding and validation](https://pkg.go.dev/github.com/gin-gonic/gin@v1.8.1#readme-model-binding-and-validation)).
 
 La función de *binding* permite validar campos requeridos, con valores comprendidos entre determinados límites, con un formato concreto, etc. Para ello, se deben decorar los campos en la *struct* (por ejemplo, con `binding:"required"` o `binding:"required,iso3166_1_alpha2"`)... Ver por ejemplo el artículo [Gin binding in Go: A tutorial with examples](https://blog.logrocket.com/gin-binding-in-go-a-tutorial-with-examples/).
 
