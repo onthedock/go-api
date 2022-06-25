@@ -48,7 +48,6 @@ r.Use(gin.Revocery())
 r.Use(gin.Logger())
 ```
 
-
 ## Rutas
 
 Para añadir una ruta, usamos el método asociado al *verbo* HTTP; por ejemplo:
@@ -93,7 +92,7 @@ Definimos la ruta como (obtenido del ejempo en [Query string parameters](https:/
 
 ```go
 router.GET("/welcome", func (c *gin.Context") {
-    firstname: = c.DefaultQuery("firstname", "Guest") // Provides a default value
+    firstname: = c.DefaultQuery("firstname", "Guest") // Provides a default value 'Guest'
     lastname := c.Query("lastname") // shortcut for c.Request.URL.Query().Get("lastname") 
 })
 ```
@@ -125,3 +124,62 @@ func main() {
     r.Run() // listen and serve on 0.0.0.0:8080
 }
 ```
+
+## Bases de datos
+
+Para una introducción de Go y bases de datos SQL, revisa el [Go database/sql tutorial](http://go-database-sql.org/).
+
+### Importar paquete y *driver*
+
+El paquete `database/sql` proporciona un interfaz genérico para todas las bases de datos SQL (aunque el *driver* específico para cada una debe instalarse por separado).
+
+```go
+import (
+    "database/sql"
+    _ "github.com/mattn/go-sqlite3"
+)
+```
+
+> Tras añadir paquetes no incluidos en la biblioteca estándar, ejecutar `go mod tidy`.
+
+### Conectar con la base de datos
+
+[Open](https://pkg.go.dev/database/sql#Open) devuelve un puntero a [`sql.DB`](https://pkg.go.dev/database/sql#DB), que se puede usar tanto en conexiones concurrentes como reutilizarse de forma segura (mantiene un *pool* de conexiones).
+
+Open sólo debe usarse una vez.
+
+Se puede definir `DB` como una variable global:
+
+```go
+var DB *sql.DB
+```
+
+Y usar `sql.Open()` en una función `OpenDB()`, por ejemplo:
+
+```go
+func OpenDB() error {
+    db, err := sql.Open("sqlite3", "./names.db")
+    if err != nil {
+        log.Printf("Error opening database ./names.db: %s\n", err.Error())
+        return err
+    }
+    DB = db
+    return nil
+}
+```
+
+### Crear tablas si no existen (desde el código)
+
+Usar la función `CREATE TABLE IF NOT EXISTS <nombre_tabla> (col1, col2, ...)` y crear la(s) tabla(s) necesarias desde el código.
+
+### Usar consultas *preparadas*
+
+Ver [Using prepared statements](https://go.dev/doc/database/prepared-statements) y la diferencia entre una consulta y una transacción en [Executing transactions](https://go.dev/doc/database/execute-transactions).
+
+> If a function name includes `Query`, it is designed to ask a question of the database, and will return a set of rows, even if it’s empty. Statements that don’t return rows should not use `Query` functions; they should use `Exec()`.
+
+Por lo que he entendido, usar `db.Query()`, obtener `rows`, recorrer las filas obtenidas en un bucle (con `rows.Next()`, `rows.Scan()`) y finalmente cerrar la conexión (con un `defer rows.Clode()`) es el patrón recomendado cuando se realizan consultas; en este contexto, *consultas* significa obtener datos de la base de datos, sin modificar su contenido.
+
+La modificación de datos es preferible realizarla usando *prepared statements* (ver [Statements that Modify Data](http://go-database-sql.org/modifying.html)).
+
+En el tutorial, se usan *transacciones* a la hora de insertar, actualizar y eliminar datos. No veo la diferencia entre usar *prepared statements* o *transacciones*.
