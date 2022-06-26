@@ -45,9 +45,9 @@ go: finding module for package github.com/mattn/go-sqlite3
 go: found github.com/mattn/go-sqlite3 in github.com/mattn/go-sqlite3 v1.14.13
 ```
 
-El paquete [`database/sql`](https://pkg.go.dev/database/sql) forma parte de la biblioteca standard. Proporciona una intefaz genérica para interaccionar con bases de datos SQL **pero no incluye ningún driver**.
+El paquete [`database/sql`](https://pkg.go.dev/database/sql) forma parte de la biblioteca *standard*. Proporciona una interfaz genérica para interaccionar con bases de datos SQL **pero no incluye ningún driver**.
 
-Por ello, es necesario importar el segundo paquete; en realidad, lo que hacemos es aprovechar que al importar un paquete se ejecutan unas funciones de inicialización (mediante la función `init()`) y éstas realizan configuraciones que permiten usar el paquete, aunque no usemos el código importado *directamente*; por ello necesitamos prefijar el `import` del *blank identifier* (`_`) y así evitar los avisos del compilador indicando que se ha importado un paquete pero que no se utiliza el código.
+Por ello, es necesario importar el segundo paquete; en realidad, lo que hacemos es aprovechar que al importar un paquete se ejecutan unas funciones de inicialización (mediante la función `init()`) y éstas realizan configuraciones que permiten usar el paquete, aunque no usemos el código importado *directamente*; por ello necesitamos prefijar el `import` con el *blank identifier* (`_`) y así evitar los avisos del compilador indicando que se ha importado un paquete pero que no se utiliza el código.
 
 Finalmente, declaramos una variable global `DB` que contiene un puntero a la conexión con la base de datos.
 
