@@ -168,6 +168,8 @@ func OpenDB() error {
 }
 ```
 
+> Hay otras opciones, ya que en general no es una buena idea usar variables globales. Puedes ver diferentes alternativas en el artículo [Organising Database Access in Go](https://www.alexedwards.net/blog/organising-database-access) de Alex Edwards.
+
 ### Crear tablas si no existen (desde el código)
 
 Usar la función `CREATE TABLE IF NOT EXISTS <nombre_tabla> (col1, col2, ...)` y crear la(s) tabla(s) necesarias desde el código.

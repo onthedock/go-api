@@ -19,6 +19,8 @@ func checkErr(err error) {
 func main() {
 
 	err := models.ConnectDatabase()
+	defer models.DB.Close()
+
 	checkErr(err)
 
 	r := gin.Default()
