@@ -38,12 +38,13 @@ func getPersons(c *gin.Context) {
 		var conv_err error
 		count, conv_err = strconv.Atoi(c.Query("count"))
 		if conv_err != nil {
-			log.Printf("error getting count from queryString (default to %d). error: %s", count, conv_err.Error())
+			log.Printf("[error] error getting count from queryString (default to %d). error: %s", count, conv_err.Error())
 		}
 	}
 
 	// Return max_count (at most)
 	if count > max_count {
+		log.Printf("[warning] requested %d records (returning max: %d)", count, max_count)
 		count = max_count
 	}
 
@@ -58,7 +59,7 @@ func getPersons(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "no records found"})
 		return
 	} else {
-		log.Printf("[info] returned %v", persons)
+		// log.Printf("[info] returned %v", persons)
 		c.JSON(http.StatusOK, gin.H{"message": persons})
 	}
 }

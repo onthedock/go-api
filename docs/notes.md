@@ -165,4 +165,10 @@ To check if there was an error getting the next row or we just run out of rows t
 
 The `models.GetPersons()` retrieves results from the database, but it's not called (yet) from the `main.go` file.
 
-We modify the `getPersons()` function to call the `models.GetPerson()` function to retrieve 10 records from the database.
+We modify the `getPersons()` function to call the `models.GetPerson()` function to retrieve `count` records from the database (`count` defaults to 10).
+
+## Customizing the number of records retrieved
+
+Instead of fixing the number of records to retrieve from the database, we allow to pass the `?count=4` parameter as a *queryString* argument, thanks to `c.Query("count")`.
+
+We check if it contains a value and we convert it to an *integer* using `strconv.Atoi()` function. If the conversion does not return an error, we check if the value of `count` is not greater than `max_value`, to prevent the user to request an arbitraryly big number of records.
