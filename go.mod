@@ -1,10 +1,10 @@
-module github.com/onthedock/go-api
+module personweb
 
 go 1.18
 
 require (
 	github.com/gin-gonic/gin v1.8.1
-	github.com/mattn/go-sqlite3 v1.14.13
+	github.com/mattn/go-sqlite3 v1.14.14
 )
 
 require (
