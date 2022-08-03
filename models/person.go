@@ -2,148 +2,84 @@ package models
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// DB is a struct defined in the database/sql package
+// DB stores connection information
 var DB *sql.DB
 
 func ConnectDatabase() error {
+	// Try to open the database
+
 	db, err := sql.Open("sqlite3", "./names.db")
 	if err != nil {
-		//log.Printf("Error opening database ./names.db: %s\n", err.Error())
+		// Something went wrong
+		// Return the err (and don't panic) so it can be handled elsewhere
+		log.Print("[error] error opening database: " + err.Error())
 		return err
 	}
+
+	// Everything Ok.
+	// Store connection information in the global variable DB
 	DB = db
 	return nil
 }
 
 type Person struct {
 	Id        int    `json:"id"`
-	FirstName string `json:"first_name"`
+	FirstName string `json:"firs_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
-	IpAddress string `json:"ip_address"`
+	IPAddress string `json:"ip_address"`
 }
 
 func GetPersons(count int) ([]Person, error) {
-	rows, err := DB.Query("SELECT id, first_name, last_name, email, ip_address from people LIMIT " + strconv.Itoa(count))
+	// Queries the DB
+	rows, err := DB.Query("SELECT id, first_name, last_name, email, ip_address FROM people LIMIT " + strconv.Itoa(count))
 
 	if err != nil {
-		log.Printf("Error querying the database: %s\n", err.Error())
+		// Something went wrong
+		log.Print("[error] DB.Query error " + err.Error())
 		return nil, err
 	}
+	// We have a conection pointing to a bunch of rows
+	// Use defer to make sure we close the connection.
 	defer rows.Close()
 
+	// Create a temporary, empty slice of Person
+	// We'll add the results retrieved from the database to the slice
 	people := make([]Person, 0)
 
+	// Iterate over the rows (while there are any left)
 	for rows.Next() {
+		// Create an empty Person
 		singlePerson := Person{}
-		err = rows.Scan(&singlePerson.Id, &singlePerson.FirstName, &singlePerson.LastName, &singlePerson.Email, &singlePerson.IpAddress)
-
+		// Retrieve the values from a row in the database and save them in the
+		// designated fields of the struct
+		// This action may fail (that's what we store returned value,
+		// to check if it was an error)
+		err = rows.Scan(&singlePerson.Id, &singlePerson.FirstName, &singlePerson.LastName, &singlePerson.Email, &singlePerson.IPAddress)
 		if err != nil {
-			log.Printf("Error getting the record with Scan: %s", err.Error())
+			log.Print("[error] error scaning row " + err.Error())
 			return nil, err
 		}
-
+		// We successfully retrieved the values from the row and store them
+		// in the temporary struct. We add it to the slice of results.
 		people = append(people, singlePerson)
 	}
-
+	// rows.Next() return an error if something went wrong getting the next row.
+	// So once the rows.Next() returns false, it is because there are no more rows
+	// or because there was an error getting the next row?
 	err = rows.Err()
 	if err != nil {
-		log.Printf("Error getting the Next: %s", err.Error())
+		// There was an error getting the next row
+		log.Print("[error] error getting next row: " + err.Error())
 		return nil, err
 	}
-
-	return people, err
-}
-
-func GetPersonById(id string) (Person, error) {
-
-	stmt, err := DB.Prepare("SELECT id, first_name, last_name, email, ip_address from people WHERE id = ?")
-
-	if err != nil {
-		log.Printf("Error querying the database: %s", err.Error())
-		return Person{}, err
-	}
-
-	person := Person{}
-
-	sqlErr := stmt.QueryRow(id).Scan(&person.Id, &person.FirstName, &person.LastName, &person.Email, &person.IpAddress)
-
-	if sqlErr != nil {
-		if sqlErr == sql.ErrNoRows {
-			return Person{}, nil
-		}
-		return Person{}, sqlErr
-	}
-	return person, nil
-}
-
-func AddPerson(newPerson Person) (bool, error) {
-
-	tx, err := DB.Begin()
-	if err != nil {
-		log.Printf("Error opening the database: %s", err.Error())
-		return false, err
-	}
-	stmt, err := tx.Prepare("INSERT INTO people (first_name, last_name, email, ip_address) VALUES (?,?,?,?)")
-	if err != nil {
-		log.Printf("error preparing insert statament: %s", err.Error())
-		return false, err
-	}
-	defer stmt.Close()
-
-	_, err = stmt.Exec(newPerson.FirstName, newPerson.LastName, newPerson.Email, newPerson.IpAddress)
-	if err != nil {
-		log.Printf("error executing the query: %s", err.Error())
-		return false, err
-	}
-	tx.Commit()
-	return true, nil
-}
-
-func UpdatePerson(ourPerson Person, id int) (bool, error) {
-	tx, err := DB.Begin()
-	if err != nil {
-		fmt.Printf("Error connecting to db, %s", err.Error())
-		return false, err
-	}
-	stmt, err := tx.Prepare("UPDATE people SET first_name = ?, last_name = ?, email = ?, ip_address = ? WHERE Id = ?")
-	if err != nil {
-		fmt.Printf("Error preparing update: %s", err.Error())
-		return false, err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(ourPerson.FirstName, ourPerson.LastName, ourPerson.Email, ourPerson.IpAddress, id)
-	if err != nil {
-		fmt.Printf("Error executing the query: %s", err.Error())
-		return false, err
-	}
-	tx.Commit()
-	return true, nil
-}
-
-func DeletePerson(personId int) (bool, error) {
-	tx, err := DB.Begin()
-	if err != nil {
-		fmt.Printf("Error connecting to database: %s", err.Error())
-		return false, err
-	}
-	stmt, err := DB.Prepare("DELETE FROM people WHERE id = ?")
-	if err != nil {
-		fmt.Printf("Error preparing statement: %s", err.Error())
-		return false, err
-	}
-	defer stmt.Close()
-	_, err = stmt.Exec(personId)
-	if err != nil {
-		fmt.Printf("Error deleting record: %s", err.Error())
-		return false, err
-	}
-	tx.Commit()
-	return true, nil
+	// No more rows left, so we have retrieve everything we wanted
+	return people, nil
 }

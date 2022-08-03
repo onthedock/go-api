@@ -1,31 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
+
+	"personweb/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/onthedock/go-api/models"
 )
 
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func main() {
-
-	err := models.ConnectDatabase()
-	defer models.DB.Close()
-
-	checkErr(err)
-
 	r := gin.Default()
-
-	// API v1
+	err := models.ConnectDatabase()
+	if err != nil {
+		log.Print("[error] error connecting to database " + err.Error())
+	}
 	v1 := r.Group("/api/v1")
 	{
 		v1.GET("person", getPersons)
@@ -33,94 +22,41 @@ func main() {
 		v1.POST("person", addPerson)
 		v1.PUT("person/:id", updatePerson)
 		v1.DELETE("person/:id", deletePerson)
-		v1.OPTIONS("person", options)
 	}
-
-	// By default it serves on :8080 unless a
-	// PORT environment variable was defined.
 	r.Run()
 }
 
 func getPersons(c *gin.Context) {
-
-	persons, err := models.GetPersons(10)
-	checkErr(err)
-
+	var count int = 10
+	persons, err := models.GetPersons(count)
+	if err != nil {
+		log.Printf("[error] %v", err.Error())
+		c.JSON(http.StatusBadRequest, gin.H{"message": "error"})
+	}
 	if persons == nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No Records Found"})
+		c.JSON(http.StatusOK, gin.H{"message": "no records found"})
 		return
 	} else {
-		c.JSON(http.StatusOK, gin.H{"data": persons})
+		log.Printf("[info] returned %v", persons)
+		c.JSON(http.StatusOK, gin.H{"message": persons})
 	}
 }
 
 func getPersonById(c *gin.Context) {
 	id := c.Param("id")
-	person, err := models.GetPersonById(id)
-	checkErr(err)
-	// If person.Id is empty, no record is found
-	if person.Id == 0 {
-		c.JSON(http.StatusNotFound, gin.H{"error": "No record found"})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{"data": person})
-	}
-
+	c.JSON(http.StatusOK, gin.H{"message": "return person with id " + id})
 }
 
 func addPerson(c *gin.Context) {
-	var json models.Person
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	success, err := models.AddPerson(json)
-	if success {
-		c.JSON(http.StatusOK, gin.H{"message": "success"})
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
-	}
+	c.JSON(http.StatusOK, gin.H{"message": "add person"})
 }
 
 func updatePerson(c *gin.Context) {
-	var json models.Person
-	if err := c.ShouldBindJSON(&json); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-	personId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
-		return
-	}
-	success, err := models.UpdatePerson(json, personId)
-	if success {
-		c.JSON(http.StatusOK, gin.H{"message": "success"})
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
-	}
+	id := c.Param("id")
+	c.JSON(http.StatusOK, gin.H{"message": "update person with id " + id})
 }
 
 func deletePerson(c *gin.Context) {
-	personId, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		fmt.Printf("Error converting Id: %s", err.Error())
-		return
-	}
-	success, err := models.DeletePerson(personId)
-	if success {
-		c.JSON(http.StatusOK, gin.H{"message": "success"})
-	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err})
-	}
-}
-
-func options(c *gin.Context) {
-	ourOptions := "HTTP/1.1 200 OK\n" +
-		"Allow: GET,POST,PUT,DELETE,OPTIONS\n" +
-		"Access-Control-Allow-Origin: http://go.dev.vm:8080\n" +
-		"Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS\n" +
-		"Access-Control-Allow-Headers: Content-Type\n"
-
-	c.String(http.StatusOK, ourOptions)
+	id := c.Param("id")
+	c.JSON(http.StatusOK, gin.H{"message": "delete person with id " + id})
 }
