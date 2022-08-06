@@ -85,16 +85,24 @@ func GetPersons(count int) ([]Person, error) {
 }
 
 func GetPersonById(id string, count int) ([]Person, error) {
+	// Convert the number of records to retrieve (int) to string
+	// to use it in the QUERY select.
 	var strCount string = strconv.Itoa(count)
+	// Retrieve the requested record (strCount defaults to 1)
+	// If strCount != 1, we retrieve the strCount next records
 	rows, err := DB.Query("SELECT id, first_name, last_name, email, ip_address FROM people WHERE id >= ? LIMIT ?", id, strCount)
 	if err != nil {
 		log.Printf("[error] error preparing query: %s", err.Error())
 		return nil, err
 	}
+	// If there's no error, we make sure to close the connecttion
 	defer rows.Close()
 
+	// Here we will store what we retrieve from the DB
 	results := make([]Person, 0)
 
+	// Cycle through the results until there are no more records
+	// or we get an error
 	for rows.Next() {
 		singlePerson := Person{}
 		err = rows.Scan(&singlePerson.Id, &singlePerson.FirstName, &singlePerson.LastName, &singlePerson.Email, &singlePerson.IPAddress)
