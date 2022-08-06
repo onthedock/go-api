@@ -57,19 +57,19 @@ func GetPersons(count int) ([]Person, error) {
 	// Iterate over the rows (while there are any left)
 	for rows.Next() {
 		// Create an empty Person
-		singlePerson := Person{}
+		onePerson := Person{}
 		// Retrieve the values from a row in the database and save them in the
 		// designated fields of the struct
 		// This action may fail (that's what we store returned value,
 		// to check if it was an error)
-		err = rows.Scan(&singlePerson.Id, &singlePerson.FirstName, &singlePerson.LastName, &singlePerson.Email, &singlePerson.IPAddress)
+		err = rows.Scan(&onePerson.Id, &onePerson.FirstName, &onePerson.LastName, &onePerson.Email, &onePerson.IPAddress)
 		if err != nil {
 			log.Print("[error] error scaning row " + err.Error())
 			return nil, err
 		}
 		// We successfully retrieved the values from the row and store them
 		// in the temporary struct. We add it to the slice of results.
-		people = append(people, singlePerson)
+		people = append(people, onePerson)
 	}
 	// rows.Next() return an error if something went wrong getting the next row.
 	// So once the rows.Next() returns false, it is because there are no more rows
@@ -82,4 +82,32 @@ func GetPersons(count int) ([]Person, error) {
 	}
 	// No more rows left, so we have retrieve everything we wanted
 	return people, nil
+}
+
+func GetPersonById(id string, count int) ([]Person, error) {
+	var strCount string = strconv.Itoa(count)
+	rows, err := DB.Query("SELECT id, first_name, last_name, email, ip_address FROM people WHERE id >= ? LIMIT ?", id, strCount)
+	if err != nil {
+		log.Printf("[error] error preparing query: %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	results := make([]Person, 0)
+
+	for rows.Next() {
+		singlePerson := Person{}
+		err = rows.Scan(&singlePerson.Id, &singlePerson.FirstName, &singlePerson.LastName, &singlePerson.Email, &singlePerson.IPAddress)
+		if err != nil {
+			log.Printf("[error] error scanning row: %s", err.Error())
+			return nil, err
+		}
+		results = append(results, singlePerson)
+	}
+	if err != nil {
+		log.Printf("[error] getting next row: %s", err.Error())
+		return nil, err
+	}
+
+	return results, nil
 }
