@@ -68,7 +68,7 @@ func getPersonById(c *gin.Context) {
 	// Limit the number of records returned
 	var max_count int = 10
 	// Default value
-	var count int = 10
+	var count int = 1
 
 	// If no "count" parameter is provided, we return the count value
 	if c.Query("count") != "" {
