@@ -119,3 +119,39 @@ func GetPersonById(id string, count int) ([]Person, error) {
 
 	return results, nil
 }
+
+func AddPerson(p Person) (int64, error) {
+	// pId stores the autoincremental id provided by the database
+	// when a new record is inserted. We initialize to 0 which, in
+	// general, is not a valid id.
+	var pId int64 = 0
+	// We initialize a transaction as we don't want to retrieve rows
+	// from the database.
+	tx, err := DB.Begin()
+	if err != nil {
+		log.Printf("[error] unable to begin transaction: %s", err.Error())
+		return pId, err
+	}
+	// We prepare an statement
+	stmt, err := tx.Prepare("INSERT INTO people (first_name, last_name, email, ip_address) VALUES (?,?,?,?)")
+	if err != nil {
+		log.Printf("[error] error preparing statement: %s", err.Error())
+		return pId, err
+	}
+
+	defer stmt.Close()
+
+	// The stmt.Exec() returns an `sql.Result`, that is an interface with 2 functions
+	r, err := stmt.Exec(p.FirstName, p.LastName, p.Email, p.IPAddress)
+	if err != nil {
+		log.Printf("[error] error executing statement: %s", err.Error())
+		return pId, err
+	}
+	// We retrieve the id of the inserted record using the LastInsertId() interface
+	pId, err = r.LastInsertId()
+	if err != nil {
+		log.Printf("[error] unable to retrieve new records'Id: %s", err.Error())
+	}
+	tx.Commit()
+	return pId, nil
+}
