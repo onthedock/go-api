@@ -179,3 +179,25 @@ func UpdatePerson(p Person, id int) (bool, error) {
 
 	return true, nil
 }
+
+func DeletePerson(id int) (bool, error) {
+	tx, err := DB.Begin()
+	if err != nil {
+		log.Printf("[error] error opening the database %s", err.Error())
+		return false, err
+	}
+	stmt, err := DB.Prepare("DELETE FROM people WHERE id = ?")
+	if err != nil {
+		log.Printf("[error] error preparing the statement - %s", err.Error())
+		return false, err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		log.Printf("[error] error deleting record %d - %s", id, err.Error())
+		return false, err
+	}
+	tx.Commit()
+	return true, nil
+}
