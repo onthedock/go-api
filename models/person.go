@@ -31,7 +31,7 @@ func ConnectDatabase() error {
 
 type Person struct {
 	Id        int    `json:"id"`
-	FirstName string `json:"firs_name"`
+	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
 	IPAddress string `json:"ip_address"`
@@ -154,4 +154,28 @@ func AddPerson(p Person) (int64, error) {
 	}
 	tx.Commit()
 	return pId, nil
+}
+
+func UpdatePerson(p Person, id int) (bool, error) {
+	tx, err := DB.Begin()
+	if err != nil {
+		log.Printf("[error] error opening database: %s", err.Error())
+		return false, err
+	}
+
+	stmt, err := tx.Prepare("UPDATE people SET first_name = ?, last_name = ?, email = ?, ip_address = ? WHERE id = ?")
+	if err != nil {
+		log.Printf("[error] error preparing statement %s", err.Error())
+		return false, err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(p.FirstName, p.LastName, p.Email, p.IPAddress, id)
+	if err != nil {
+		log.Printf("[error] error updating the database %s", err.Error())
+		return false, err
+	}
+	tx.Commit()
+
+	return true, nil
 }
