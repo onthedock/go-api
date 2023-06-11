@@ -45,7 +45,7 @@ Creamos una instance del *router* `Default()` proporcionado por Gin:
 r := gin.Default()
 ```
 
-A continuación se define un [grupo](https://pkg.go.dev/github.com/gin-gonic/gin#RouterGroup.Group), de manera que todas las rutas definidas en el grupo tienen *middlewares* comunes o el mismo prefijo. En este caso, lo usamos para versionar la API. Tras crear las rutas, usamos [r.Run()](https://pkg.go.dev/github.com/gin-gonic/gin#Engine.Run) que asocia el *router* al servidor HTTP y empiza a escuchar y a responder peticiones (*listen & serve*):
+A continuación se define un [grupo](https://pkg.go.dev/github.com/gin-gonic/gin#RouterGroup.Group), de manera que todas las rutas definidas en el grupo tienen *middlewares* comunes o el mismo prefijo. En este caso, lo usamos para versionar la API. Tras crear las rutas, usamos [r.Run()](https://pkg.go.dev/github.com/gin-gonic/gin#Engine.Run) que asocia el *router* al servidor HTTP y empieza a escuchar y a responder peticiones (*listen & serve*):
 
 ```go
 // main.go -> func main()
